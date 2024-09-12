@@ -18,7 +18,7 @@ const Navbar = () => {
 
         <div className="flex items-center md:px-9 px-3 space-x-4">
           <a
-            href="https://github.com/Praveenskg/EmiCal"
+            href="https://github.com/Praveenskg/Emi-Calculator"
             target="_blank"
             rel="noopener noreferrer"
             className="text-gray-800 dark:text-white"
