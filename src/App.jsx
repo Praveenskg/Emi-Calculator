@@ -1,5 +1,6 @@
 import Loader from "./Components/Loader";
 import Navbar from "./Components/Navbar"
+import EmiForm from "./Components/EmiForm";
 import { useEffect, useState } from "react";
 const App = () => {
   const [loading, setLoading] = useState(true);
