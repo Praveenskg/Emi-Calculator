@@ -14,6 +14,9 @@ const EmiForm = () => {
   const [amortization, setAmortization] = useState([]);
   const [gstAmount, setGstAmount] = useState(0);
   const [hasInputValue, setHasInputValue] = useState(false);
+  const [principal, setPrincipal] = useState(0);
+  const [annualInterestRate, setAnnualInterestRate] = useState(0);
+  const [tenureMonths, setTenureMonths] = useState(0);
 
   const toggleGst = (event) => {
     setShowGst(event.target.checked);
@@ -33,6 +36,9 @@ const EmiForm = () => {
     setAmortization([]);
     setGstAmount(0);
     setLoading(false);
+    setPrincipal(0);
+    setAnnualInterestRate(0);
+    setTenureMonths(0);
   };
 
   const validationSchema = yup.object({
@@ -48,12 +54,13 @@ const EmiForm = () => {
       .number()
       .required("Loan Tenure is required")
       .min(1, "Loan Tenure must be at least 1 month"),
-    gst: yup
-      .number()
-      .when('showGst', {
-        is: true,
-        then: yup.number().min(1, "GST must be at least 5%"),
-      }),
+    gst: yup.number().when("showGst", {
+      is: true,
+      then: yup
+        .number()
+        .required("GST Rate is required")
+        .min(1, "GST must be at least 1%"),
+    }),
   });
 
   const formik = useFormik({
@@ -86,9 +93,14 @@ const EmiForm = () => {
     const monthlyInterestRate = annualInterestRate / 12;
 
     const emi =
-      (principal * monthlyInterestRate * Math.pow(1 + monthlyInterestRate, tenureMonths)) /
+      (principal *
+        monthlyInterestRate *
+        Math.pow(1 + monthlyInterestRate, tenureMonths)) /
       (Math.pow(1 + monthlyInterestRate, tenureMonths) - 1);
     setEmi(emi);
+    setPrincipal(principal);
+    setAnnualInterestRate(annualInterestRate);
+    setTenureMonths(tenureMonths);
 
     const totalInterestPayable = emi * tenureMonths - principal;
     setTotalInterestPayable(totalInterestPayable);
@@ -103,7 +115,8 @@ const EmiForm = () => {
       const principalPayment = emi - interestPayment;
       balance -= principalPayment;
 
-      const gstAmountForMonth = showGst ? (interestPayment * parseFloat(values.gst)) / 100 : 0;
+      const gstRate = parseFloat(values.gst) || 0;
+      const gstAmountForMonth = showGst ? (interestPayment * gstRate) / 100 : 0;
 
       amortization.push({
         month,
@@ -118,13 +131,17 @@ const EmiForm = () => {
     setAmortization(amortization);
 
     // Calculate total GST amount for all months
-    const totalGstAmount = amortization.reduce((total, item) => total + item.gst, 0);
+    const totalGstAmount = amortization.reduce(
+      (total, item) => total + item.gst,
+      0
+    );
     setGstAmount(totalGstAmount);
   };
 
   useEffect(() => {
     if (totalInterestPayable && showGst && parseFloat(formik.values.gst) > 0) {
-      const gstAmount = (totalInterestPayable * parseFloat(formik.values.gst)) / 100;
+      const gstAmount =
+        (totalInterestPayable * parseFloat(formik.values.gst)) / 100;
       setGstAmount(gstAmount);
     } else {
       setGstAmount(0);
@@ -136,9 +153,17 @@ const EmiForm = () => {
       <div className="rounded-lg w-full md:px-3 shadow-lg md:mb-8">
         <Header />
         <div className="grid gap-2 rounded-lg p-4  lg:p-0 lg:backdrop-blur-none dark:border dark:border-gray-700 md:border-0 ">
-          <form onSubmit={formik.handleSubmit} className="my-5 relative grid grid-cols-2 gap-4  p-3 ">
+          <form
+            onSubmit={formik.handleSubmit}
+            className="my-5 relative grid grid-cols-2 gap-4  p-3 "
+          >
             <div className="md:col-span-1 col-span-2">
-              <label htmlFor="principal" className="block text-sm text-gray-500 dark:text-gray-300 font-bold">Principal Amount</label>
+              <label
+                htmlFor="principal"
+                className="block text-sm text-gray-500 dark:text-gray-400 font-bold mb-1"
+              >
+                Principal Amount
+              </label>
               <input
                 type="number"
                 id="principal"
@@ -153,7 +178,10 @@ const EmiForm = () => {
                   dark:text-gray-300 dark:border-gray-600 focus:border-indigo-600
                   dark:focus:border-indigo-500 focus:ring-indigo-300 focus:outline-none focus:ring
                   focus:ring-opacity-40
-                  ${formik.touched.principal && formik.errors.principal ? "border-red-500" : ""}
+                  ${formik.touched.principal && formik.errors.principal
+                    ? "border-red-500"
+                    : ""
+                  }
                 `}
               />
               {formik.touched.principal && formik.errors.principal && (
@@ -161,7 +189,12 @@ const EmiForm = () => {
               )}
             </div>
             <div className="md:col-span-1 col-span-2">
-              <label htmlFor="interest" className="block text-sm text-gray-500 dark:text-gray-300 font-bold">Interest Rate</label>
+              <label
+                htmlFor="interest"
+                className="block text-sm text-gray-500 dark:text-gray-400 font-bold mb-1"
+              >
+                Interest Rate
+              </label>
               <input
                 type="number"
                 id="interest"
@@ -176,7 +209,10 @@ const EmiForm = () => {
                   dark:text-gray-300 dark:border-gray-600 focus:border-indigo-600
                   dark:focus:border-indigo-500 focus:ring-indigo-300 focus:outline-none focus:ring
                   focus:ring-opacity-40
-                  ${formik.touched.interest && formik.errors.interest ? "border-red-500" : ""}
+                  ${formik.touched.interest && formik.errors.interest
+                    ? "border-red-500"
+                    : ""
+                  }
                 `}
               />
               {formik.touched.interest && formik.errors.interest && (
@@ -184,7 +220,12 @@ const EmiForm = () => {
               )}
             </div>
             <div className="md:col-span-1 col-span-2">
-              <label htmlFor="tenure" className="block text-sm text-gray-500 dark:text-gray-300 font-bold">Loan Tenure</label>
+              <label
+                htmlFor="tenure"
+                className="block text-sm text-gray-500 dark:text-gray-400 font-bold mb-1"
+              >
+                Loan Tenure
+              </label>
               <input
                 type="number"
                 id="tenure"
@@ -202,7 +243,10 @@ const EmiForm = () => {
                   dark:text-gray-300 dark:border-gray-600 focus:border-indigo-600
                   dark:focus:border-indigo-500 focus:ring-indigo-300 focus:outline-none focus:ring
                   focus:ring-opacity-40
-                  ${formik.touched.tenure && formik.errors.tenure ? "border-red-500" : ""}
+                  ${formik.touched.tenure && formik.errors.tenure
+                    ? "border-red-500"
+                    : ""
+                  }
                 `}
               />
               {formik.touched.tenure && formik.errors.tenure && (
@@ -211,7 +255,12 @@ const EmiForm = () => {
             </div>
             {showGst && (
               <div className="md:col-span-1 col-span-2">
-                <label htmlFor="gst" className="block text-sm text-gray-500 dark:text-gray-300 font-bold">GST</label>
+                <label
+                  htmlFor="gst"
+                  className="block text-sm text-gray-500 dark:text-gray-400 font-bold mb-1"
+                >
+                  GST
+                </label>
                 <input
                   type="number"
                   id="gst"
@@ -226,7 +275,10 @@ const EmiForm = () => {
                     dark:text-gray-300 dark:border-gray-600 focus:border-indigo-600
                     dark:focus:border-indigo-500 focus:ring-indigo-300 focus:outline-none focus:ring
                     focus:ring-opacity-40
-                    ${formik.touched.gst && formik.errors.gst ? "border-red-500" : ""}
+                    ${formik.touched.gst && formik.errors.gst
+                      ? "border-red-500"
+                      : ""
+                    }
                   `}
                 />
                 {formik.touched.gst && formik.errors.gst && (
@@ -241,9 +293,14 @@ const EmiForm = () => {
                 name="toggleGst"
                 checked={showGst}
                 onChange={toggleGst}
-                className="mr-2"
+                className="mr-1"
               />
-              <label htmlFor="toggleGst" className="block text-sm text-gray-500 dark:text-gray-300 font-bold">Include GST</label>
+              <label
+                htmlFor="toggleGst"
+                className="block text-sm text-gray-500 dark:text-gray-400 font-bold"
+              >
+                Include GST
+              </label>
             </div>
 
             <div className="md:col-span-1 col-span-2 mt-4 flex justify-between">
@@ -252,7 +309,7 @@ const EmiForm = () => {
                 disabled={loading}
                 className="w-full px-6 py-2.5 text-sm font-medium tracking-wide text-white capitalize transition-colors duration-300 transform bg-indigo-600 dark:bg-indigo-600 rounded-lg hover:bg-indigo-500 dark:hover:bg-indigo-500 focus:outline-none focus:ring focus:ring-gray-300 focus:ring-opacity-50"
               >
-                <span className="flex items-center justify-center">
+                <span className="flex items-center justify-center dark:text-gray-300">
                   {loading && <Loader className="mr-2 size-4 animate-spin" />}
                   Calculate
                 </span>
@@ -262,7 +319,7 @@ const EmiForm = () => {
                   type="button"
                   onClick={handleReset}
                   disabled={loading}
-                  className="w-full px-6 py-2.5 text-sm font-medium tracking-wide text-white capitalize transition-colors duration-300 transform bg-red-600 dark:bg-red-600 rounded-lg hover:bg-red-500 dark:hover:bg-red-500 focus:outline-none focus:ring focus:ring-gray-300 focus:ring-opacity-50 ml-4"
+                  className="w-full px-6 py-2.5 text-sm font-medium tracking-wide dark:text-gray-300 text-white capitalize transition-colors duration-300 transform bg-red-600 dark:bg-red-600 rounded-lg hover:bg-red-500 dark:hover:bg-red-500 focus:outline-none focus:ring focus:ring-gray-300 focus:ring-opacity-50 ml-4"
                 >
                   Reset
                 </button>
@@ -278,6 +335,9 @@ const EmiForm = () => {
           gstAmount={gstAmount}
           totalInterestPayable={totalInterestPayable}
           totalPayment={totalPayment}
+          principal={principal} // Pass principal
+          annualInterestRate={annualInterestRate} // Pass annualInterestRate
+          tenureMonths={tenureMonths} // Pass tenureMonths
         />
       </div>
     </>
