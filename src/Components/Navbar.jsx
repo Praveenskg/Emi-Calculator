@@ -7,8 +7,6 @@ const Navbar = () => {
         <div className="text-gray-800 dark:text-white cursor-pointer">
           <a href="/">
             <img
-              width={0}
-              height={0}
               src="/Logo.svg"
               alt="Logo"
               style={{ width: '300px', height: "auto" }}

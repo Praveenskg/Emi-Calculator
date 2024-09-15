@@ -1,6 +1,6 @@
 const Header = () => {
   return (
-    <div className="flex flex-col space-y-2 text-center p-4 rounded-lg mb-2 dark:border dark:border-gray-700 md:border-0 ">
+    <div className="flex flex-col space-y-2 text-center p-4 rounded-lg mb-2 dark:border dark:border-gray-700 md:border-0  text-gray-700 dark:text-gray-400">
       <h3 className="scroll-m-20 text-2xl font-semibold tracking-tight">
         Emi Calculator
       </h3>
