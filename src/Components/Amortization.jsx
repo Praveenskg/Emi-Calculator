@@ -221,7 +221,7 @@ const Amortization = ({
                     <td className="px-6 py-4">{item.principal.toFixed(2)}</td>
                     <td className="px-6 py-4">{item.interest.toFixed(2)}</td>
                     {showGst && (
-                      <td className="px-6 py-4">₹{item.gst.toFixed(2)}</td>
+                      <td className="px-6 py-4">{item.gst.toFixed(2)}</td>
                     )}
                     <td className="px-6 py-4">
                       {item.closingBalance.toFixed(2)}
@@ -245,7 +245,7 @@ const Amortization = ({
                     {totalInterestPayable.toFixed(2)}
                   </td>
                   {showGst && (
-                    <td className="px-6 py-4">₹{gstAmount.toFixed(2)}</td>
+                    <td className="px-6 py-4">{gstAmount.toFixed(2)}</td>
                   )}
                   <td className="px-6 py-4">=</td>
                   <td className="px-6 py-4">
